@@ -1,65 +1,97 @@
 # Sequencing QC Experiments
 
-A collection of small bioinformatics experiments focused on FASTQ quality analysis, sequencing-read statistics, and workflow development.
+A small collection of Python/Biopython experiments focused on FASTQ quality analysis and sequencing-read quality-control concepts.
 
-This repository is a work in progress and is being used to explore different approaches to sequencing quality control with Python, Biopython, NumPy, and Nextflow.
+This repository is intentionally exploratory. The goal is to better understand how sequencing quality metrics are calculated and represented rather than to replace established production QC tools.
 
-## Current Experiments
+## fastq_quality_stats.py
 
-### FASTQ Quality Statistics
+### Purpose
 
-Parses gzipped FASTQ files with Biopython and extracts PHRED quality scores to calculate basic quality statistics such as:
+A lightweight Python/Biopython utility created as a learning exercise to reproduce a small subset of sequencing-quality functionality found in tools such as FASTP.
 
-* Mean quality score
-* Minimum quality score
-* Maximum quality score
-* Standard deviation
+The goal was to understand how PHRED quality scores can be extracted directly from FASTQ records and summarized in Python instead of relying only on the finished output of an existing QC tool.
 
-Current implementation is intended for learning and small test datasets. Future versions will explore more memory-efficient approaches for large sequencing files.
+### Current Functionality
 
-### Per-Position Quality Analysis
+The script parses gzipped FASTQ files and calculates:
 
-An experimental script exploring quality scores by read position.
+* Mean PHRED quality score
+* Minimum PHRED quality score
+* Maximum PHRED quality score
+* Standard deviation of PHRED quality scores
 
-The current approach:
+### Limitations
 
-1. Determines the shortest read in the FASTQ file.
-2. Extracts PHRED quality scores from each read.
-3. Truncates quality-score arrays to a common length.
-4. Prepares the data for position-based statistical analysis.
+* Calculates only basic global PHRED-score statistics.
+* Stores extracted PHRED scores in memory, so it is not optimized for very large FASTQ datasets.
+* Does not perform adapter trimming, read filtering, or sequence correction.
+* Does not currently generate visualizations or HTML reports.
+* Assumes gzipped FASTQ input.
+* Has limited input validation and error handling.
 
-The goal is to explore how sequencing quality changes across read positions and whether trends such as rate of quality decline can provide useful QC information.
+### Future Work
 
-Future work may include:
+Possible improvements include:
 
-* Mean and median PHRED score by position
-* Quality-score visualization
+* More memory-efficient quality-score processing
+* Improved input validation and error handling
+* Structured or labeled output
+* Additional sequencing-QC statistics
+* Integration with per-position quality analysis
+
+---
+
+## per_position.py
+
+### Purpose
+
+An experimental script exploring how PHRED quality scores change across read positions.
+
+This project grew out of thinking about sequencing-read length and quality as values that could be visualized and analyzed across position. The longer-term question is whether patterns such as the rate of quality decline across a read could provide useful information about sequencing quality.
+
+### Current Functionality
+
+The current implementation:
+
+1. Parses a gzipped FASTQ file with Biopython.
+2. Determines the length of the shortest read.
+3. Extracts PHRED quality scores from each read.
+4. Truncates each quality-score array to the shortest read length.
+5. Stores the resulting position-aligned quality-score arrays for further analysis.
+
+This creates a common positional structure that can be used to compare quality scores across reads.
+
+### Limitations
+
+* The current implementation is incomplete and does not yet calculate per-position summary statistics.
+* Truncating all reads to the shortest read length can discard useful information from longer reads.
+* A single unusually short read can substantially reduce the amount of sequence data included in the analysis.
+* Quality-score arrays are stored in memory, limiting scalability for large FASTQ datasets.
+* The script currently prints intermediate data rather than generating a useful QC report.
+* Empty or malformed input files are not yet handled robustly.
+
+### Future Work
+
+The next stages of the experiment may include:
+
+* Mean and median PHRED score by read position
+* Plotting quality score versus read position
 * Windowed or smoothed quality trends
-* Rate-of-change analysis
-* More memory-efficient processing of large FASTQ files
-
-### Nextflow Workflow Experiment
-
-A compact Nextflow DSL2 workflow combining:
-
-* FASTP read preprocessing
-* BWA alignment
-* SAMtools sorting and indexing
-* Alignment statistics with `samtools flagstat`
-
-This workflow is being used to experiment with alternative pipeline structures and dataflow behavior.
+* Exploring first-order rate of change in per-position quality
+* Investigating whether changes in quality slope identify regions of rapid quality deterioration
+* Preserving information from variable-length reads without truncating all reads to the shortest sequence
+* More memory-efficient processing for large FASTQ datasets
 
 ## Tools
 
 * Python
 * Biopython
 * NumPy
-* Nextflow DSL2
-* FASTP
-* BWA
-* SAMtools
-* Docker / Singularity
 
 ## Status
 
-This repository contains experimental and developmental code rather than a finished production pipeline. The focus is on learning, testing ideas, and improving approaches to sequencing QC and workflow design.
+This repository contains experimental and developmental code rather than production-ready sequencing-QC software.
+
+The focus is on understanding FASTQ quality data, testing analytical ideas, and improving both the biological interpretation and computational implementation over time.
+
